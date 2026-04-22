@@ -37,6 +37,33 @@ function showResult(data) {
 
   $("play-btn").disabled = !data.response_text;
   $("play-btn").dataset.text = data.response_text || "";
+
+  const audioEl = $("elevenlabs-audio");
+  audioEl.removeAttribute("src");
+  audioEl.load();
+
+  const ttsRow = $("tts-status-row");
+  const ttsText = $("tts-status-text");
+  const ttsDetail = $("tts-status-detail");
+  ttsRow.classList.remove("hidden");
+  ttsText.textContent = data.tts_status || "skipped";
+  if (data.tts_status === "skipped" && !data.tts_detail) {
+    ttsDetail.textContent =
+      "TTS not requested. Enable the checkbox to call ElevenLabs when credentials are set in the server .env.";
+  } else {
+    ttsDetail.textContent = data.tts_detail || "";
+  }
+
+  const player = $("elevenlabs-player");
+  const playerNote = $("elevenlabs-player-note");
+  if (data.tts_status === "ok" && data.tts_audio_base64 && data.tts_mime_type) {
+    player.classList.remove("hidden");
+    playerNote.textContent = "Audio returned inline from ElevenLabs (MP3).";
+    audioEl.src = `data:${data.tts_mime_type};base64,${data.tts_audio_base64}`;
+  } else {
+    player.classList.add("hidden");
+    playerNote.textContent = "";
+  }
 }
 
 async function submitRoute() {
@@ -52,10 +79,12 @@ async function submitRoute() {
 
   setLoading(true);
   try {
+    const synthesize_speech = $("synthesize-speech").checked;
+
     const res = await fetch("/route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customer_id, message }),
+      body: JSON.stringify({ customer_id, message, synthesize_speech }),
     });
 
     if (!res.ok) {

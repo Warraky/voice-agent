@@ -7,7 +7,7 @@ This is a **portfolio project** meant to reflect how a Solutions Engineer frames
 ## Summary
 
 - **`GET /`**: Presales-friendly demo UI (vanilla HTML/CSS/JS) for entering a simulated transcript and viewing routing output.
-- **`POST /route`**: JSON API returning `intent`, `workflow`, `suggested_action`, `response_text`, `voice_output` placeholder, and `confidence`.
+- **`POST /route`**: JSON API returning `intent`, `workflow`, `suggested_action`, `response_text`, `voice_output`, `confidence`, and optional **ElevenLabs** fields when `synthesize_speech: true` and server credentials are set.
 
 ## Why this matters for voice AI and solutions engineering
 
@@ -20,7 +20,45 @@ This repository keeps the **middle slice** explicit—the contract after ASR and
 1. Run the app locally and open the home page.
 2. Enter (or sample-paste) a realistic support utterance.
 3. Inspect the **result card**: intent, workflow, suggested action, customer-facing response, placeholder audio token, and confidence.
-4. Optional: **Play sample audio** uses the browser’s speech preview when available; it is labeled as a stub and is **not** vendor audio.
+4. Optional: enable **Call ElevenLabs TTS** to synthesize `response_text` on the server (uses your `.env` key; response includes an inline MP3 player when successful).
+5. **Browser speech preview** remains available as a separate, non-vendor stub.
+
+## Testing with an ElevenLabs API key
+
+**Security:** put the key only in a server-side `.env` file (never in the browser or in Git). `.gitignore` already excludes `.env`.
+
+1. In the [ElevenLabs API keys](https://elevenlabs.io/app/settings/api-keys) area, create an API key.
+2. Copy a **voice ID** from [My Voices](https://elevenlabs.io/app/voice-library) (or use the [List voices API](https://elevenlabs.io/docs/api-reference/voices/search)).
+3. In `voice-agent-demo/.env` (create from `.env.example`), set:
+
+```bash
+ELEVENLABS_API_KEY=your_key_here
+ELEVENLABS_VOICE_ID=your_voice_id_here
+# Optional; default matches app/config.py
+# ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+```
+
+4. Restart `uvicorn` so settings reload.
+5. **From the UI:** check **Call ElevenLabs TTS**, submit a route, then use the **ElevenLabs audio** player when `tts_status` is `ok`.
+
+**From curl** (uses quota; response body will be large when audio is included):
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/route \
+  -H "Content-Type: application/json" \
+  -d '{"customer_id":"12345","message":"I need help resetting my password and I cannot log in","synthesize_speech":true}'
+```
+
+Response fields:
+
+| Field | Meaning |
+|-------|---------|
+| `tts_status` | `skipped` \| `no_credentials` \| `ok` \| `error` |
+| `tts_mime_type` | e.g. `audio/mpeg` when audio is present |
+| `tts_audio_base64` | Base64 MP3 when `tts_status` is `ok` |
+| `tts_detail` | Error or configuration hint |
+
+**Note:** This demo returns **inline base64 audio** for simplicity. Production systems usually store audio in object storage and return a **short-lived URL** instead of enlarging JSON payloads.
 
 ## Architecture
 
@@ -82,7 +120,11 @@ curl -s -X POST http://127.0.0.1:8000/route \
   "suggested_action": "Send password reset instructions",
   "response_text": "I can help you reset your password. First I will verify your account and then send reset instructions.",
   "voice_output": "placeholder_audio_response.wav",
-  "confidence": 0.95
+  "confidence": 0.95,
+  "tts_status": "skipped",
+  "tts_mime_type": null,
+  "tts_audio_base64": null,
+  "tts_detail": null
 }
 ```
 
@@ -99,7 +141,7 @@ Additional JSON bodies live in **[examples/sample_requests.json](examples/sample
 
 ## Future improvements
 
-- Optional **TTS adapter** module (env-guarded) returning real media metadata.
+- Return **signed URLs** to object storage instead of inline base64 for TTS output.
 - **Auth** at the edge and per-tenant routing tables.
 - **Unit tests** for precedence and confidence monotonicity.
 - **Metrics** (latency histograms, intent distribution) exported to your observability stack.

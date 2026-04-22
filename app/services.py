@@ -11,8 +11,10 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, Literal
 
+from app.config import settings
+from app.elevenlabs_tts import synthesize_speech
 from app.models import RouteRequest, RouteResponse
 
 logger = logging.getLogger(__name__)
@@ -139,11 +141,47 @@ def process_route_request(payload: RouteRequest, correlation_id: str | None = No
         },
     )
 
+    response_text = match.response_template
+    voice_output = "placeholder_audio_response.wav"
+    tts_status: Literal["skipped", "no_credentials", "ok", "error"] = "skipped"
+    tts_mime_type: str | None = None
+    tts_audio_base64: str | None = None
+    tts_detail: str | None = None
+
+    if payload.synthesize_speech:
+        api_key = (settings.elevenlabs_api_key or "").strip()
+        voice_id = (settings.elevenlabs_voice_id or "").strip()
+        if not api_key or not voice_id:
+            tts_status = "no_credentials"
+            tts_detail = "Set ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID in the server .env, then restart uvicorn."
+        else:
+            result = synthesize_speech(
+                response_text,
+                api_key=api_key,
+                voice_id=voice_id,
+                model_id=settings.elevenlabs_model_id,
+            )
+            if result.error:
+                tts_status = "error"
+                tts_detail = result.error
+                logger.warning("elevenlabs_tts_failed", extra={"correlation_id": cid, "detail": result.error[:500]})
+            else:
+                tts_status = "ok"
+                tts_mime_type = result.mime_type
+                tts_audio_base64 = result.audio_base64
+                voice_output = "elevenlabs_inline_audio"
+                approx_bytes = max(0, (len(result.audio_base64) * 3) // 4)
+                logger.info("elevenlabs_tts_ok", extra={"correlation_id": cid, "approx_audio_bytes": approx_bytes})
+
     return RouteResponse(
         intent=match.intent,
         workflow=match.workflow,
         suggested_action=match.suggested_action,
-        response_text=match.response_template,
-        voice_output="placeholder_audio_response.wav",
+        response_text=response_text,
+        voice_output=voice_output,
         confidence=confidence,
+        tts_status=tts_status,
+        tts_mime_type=tts_mime_type,
+        tts_audio_base64=tts_audio_base64,
+        tts_detail=tts_detail,
     )

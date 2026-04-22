@@ -34,7 +34,7 @@ Channel (phone, web, app)
            │
            ▼
 ┌──────────────────────┐
-│ Voice synthesis (TTS) │  Stream or file output; placeholder filename in this repo
+│ Voice synthesis (TTS) │  Optional ElevenLabs MP3 (inline base64 in demo) or placeholder token |
 └──────────────────────┘
 ```
 
@@ -48,7 +48,7 @@ Channel (phone, web, app)
 | Workflow selection | `workflow` string per intent |
 | Response generation | `response_text` template per intent |
 | Confidence | Heuristic from keyword/pattern overlap (not a calibrated model score) |
-| Placeholder TTS | `voice_output` static token; UI offers optional browser speech preview |
+| TTS | Optional ElevenLabs call (`synthesize_speech` + env); else `voice_output` placeholder; UI can play MP3 or browser preview |
 | Observability | `intent_routed` log fields; `x-request-id` middleware |
 
 ## Web UI layer

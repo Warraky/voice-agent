@@ -12,16 +12,9 @@ import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.config import settings
 from app.router import router
-
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    app_name: str = "voice-agent-demo"
-    log_level: str = "INFO"
 
 
 def _base_dir():
@@ -30,7 +23,6 @@ def _base_dir():
     return Path(__file__).resolve().parent
 
 
-settings = Settings()
 logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO))
 
 app = FastAPI(

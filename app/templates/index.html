@@ -40,6 +40,14 @@
             <button type="button" class="chip" data-sample="outage">Outage</button>
           </div>
 
+          <label class="checkbox-row">
+            <input id="synthesize-speech" type="checkbox" />
+            <span
+              >Call <strong>ElevenLabs TTS</strong> on the server (uses <code>ELEVENLABS_*</code> from your
+              <code>.env</code>; slower, uses API quota)</span
+            >
+          </label>
+
           <div class="actions">
             <button type="button" id="submit-btn" class="primary-btn">Route request</button>
             <span id="loading" class="loading hidden" aria-live="polite">Routing…</span>
@@ -84,11 +92,23 @@
               </div>
             </div>
 
+            <div id="elevenlabs-player" class="elevenlabs-player hidden">
+              <span class="metric-label">ElevenLabs audio (this response)</span>
+              <audio id="elevenlabs-audio" class="audio-el" controls preload="none"></audio>
+              <p id="elevenlabs-player-note" class="tts-note"></p>
+            </div>
+
+            <div id="tts-status-row" class="tts-status hidden">
+              <span class="metric-label">TTS status</span>
+              <p id="tts-status-text" class="metric-value mono"></p>
+              <p id="tts-status-detail" class="tts-note"></p>
+            </div>
+
             <div class="tts-block">
-              <button type="button" id="play-btn" class="secondary-btn" disabled>Play sample audio</button>
+              <button type="button" id="play-btn" class="secondary-btn" disabled>Browser speech preview</button>
               <p class="tts-note">
-                Uses the browser’s speech preview when available—<strong>not</strong> vendor audio. In production this
-                would stream TTS (for example ElevenLabs) from <code>response_text</code>.
+                Uses <code>window.speechSynthesis</code> for a quick local preview—separate from ElevenLabs. When TTS is
+                enabled above, use the audio player for vendor output.
               </p>
             </div>
           </div>
