@@ -1,0 +1,22 @@
+[
+  {
+    "customer_id": "12345",
+    "message": "I need help resetting my password and I cannot log in"
+  },
+  {
+    "customer_id": "cust_acme_8821",
+    "message": "There is an unexpected charge on my last invoice and I need a refund review"
+  },
+  {
+    "customer_id": "ORD-44102",
+    "message": "Can you tell me when my package will be delivered and share tracking"
+  },
+  {
+    "customer_id": "tenant_media_west",
+    "message": "Our dashboard is down and users are getting a 503 error"
+  },
+  {
+    "customer_id": "visitor_anon_01",
+    "message": "I have a general question about your company"
+  }
+]

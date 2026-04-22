@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <h1>Voice-shaped support routing</h1>
+            <p class="subtitle">
+              Simulate a post-transcript utterance, route it to a workflow, and preview the structured outcome a voice
+              agent would hand to CRM, ticketing, or TTS.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel" aria-labelledby="input-heading">
+          <h2 id="input-heading" class="panel-title">Transcript</h2>
+          <p class="hint">Paste text as if it came from speech-to-text. This demo does not record audio.</p>
+
+          <label class="field-label" for="customer-id">Customer ID <span class="optional">(optional)</span></label>
+          <input id="customer-id" class="text-input" type="text" placeholder="e.g. 12345 or cust_acme_8821" autocomplete="off" />
+
+          <label class="field-label" for="message">Support request</label>
+          <textarea id="message" class="textarea" rows="6" placeholder="Describe the issue in natural language…"></textarea>
+
+          <div class="samples" role="group" aria-label="Sample prompts">
+            <span class="samples-label">Try a sample:</span>
+            <button type="button" class="chip" data-sample="password">Password reset</button>
+            <button type="button" class="chip" data-sample="billing">Billing</button>
+            <button type="button" class="chip" data-sample="order">Order status</button>
+            <button type="button" class="chip" data-sample="outage">Outage</button>
+          </div>
+
+          <div class="actions">
+            <button type="button" id="submit-btn" class="primary-btn">Route request</button>
+            <span id="loading" class="loading hidden" aria-live="polite">Routing…</span>
+          </div>
+
+          <p id="error" class="error hidden" role="alert"></p>
+        </section>
+
+        <section class="panel results" aria-labelledby="results-heading">
+          <h2 id="results-heading" class="panel-title">Routing result</h2>
+          <p class="hint">Values mirror what <code>POST /route</code> returns for integrations and demos.</p>
+
+          <div id="empty-state" class="empty-state">
+            <p>Submit a request to see intent, workflow, confidence, and a placeholder for synthesized speech.</p>
+          </div>
+
+          <div id="result-card" class="result-card hidden">
+            <div class="result-grid">
+              <div class="metric">
+                <span class="metric-label">Intent</span>
+                <span id="out-intent" class="metric-value mono"></span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Workflow</span>
+                <span id="out-workflow" class="metric-value mono"></span>
+              </div>
+              <div class="metric metric-wide">
+                <span class="metric-label">Suggested action</span>
+                <span id="out-action" class="metric-value"></span>
+              </div>
+              <div class="metric metric-wide">
+                <span class="metric-label">Customer-facing response</span>
+                <p id="out-response" class="metric-value prose"></p>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Voice output</span>
+                <span id="out-voice" class="metric-value mono"></span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Confidence</span>
+                <span id="out-confidence" class="metric-value"></span>
+              </div>
+            </div>
+
+            <div class="tts-block">
+              <button type="button" id="play-btn" class="secondary-btn" disabled>Play sample audio</button>
+              <p class="tts-note">
+                Uses the browser’s speech preview when available—<strong>not</strong> vendor audio. In production this
+                would stream TTS (for example ElevenLabs) from <code>response_text</code>.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Portfolio demo · API: <code>/route</code> · UI: <code>GET /</code></span>
+      </footer>
+    </div>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
